@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
+/* eslint-disable jsx-a11y/control-has-associated-label */
 import React, { useEffect, useMemo, useState } from 'react';
 import { UserWarning } from './UserWarning';
 import * as todosService from './api/todos';
@@ -56,7 +58,7 @@ export const App: React.FC = () => {
         return newTodos;
       });
     } catch (error) {
-      setErrorMessage('Unable to update a todo');
+      setErrorMessage(ErrorMessages.UNABLE_TO_UPDATE);
       setTimeout(() => setErrorMessage(null), 3000);
       throw error;
     } finally {
@@ -87,7 +89,7 @@ export const App: React.FC = () => {
           });
         })
         .catch(() => {
-          setErrorMessage('Unable to update a todo');
+          setErrorMessage(ErrorMessages.UNABLE_TO_UPDATE);
           setTimeout(() => setErrorMessage(null), 3000);
         })
         .finally(() => setProcessedId([]));
@@ -138,7 +140,7 @@ export const App: React.FC = () => {
         );
       })
       .catch(() => {
-        setErrorMessage('Unable to update todos');
+        setErrorMessage(ErrorMessages.UNABLE_TO_UPDATE);
         setTimeout(() => setErrorMessage(null), 3000);
       });
   };

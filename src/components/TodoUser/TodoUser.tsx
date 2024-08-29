@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
+/* eslint-disable jsx-a11y/control-has-associated-label */
 import React, { useEffect, useRef, useState } from 'react';
 import { Todo } from '../../types/Todo';
 import cn from 'classnames';
@@ -42,7 +44,6 @@ export const TodoUser: React.FC<Props> = ({
           await onDelete(id);
           setIsEditing(false);
         } catch (error) {
-          // Если удаление не удалось, оставляем форму открытой
           setEditedTitle(title);
         } finally {
           setIsLoading(false);
@@ -53,7 +54,6 @@ export const TodoUser: React.FC<Props> = ({
           await handleUpdateTodo({ ...todo, title: titleTrim });
           setIsEditing(false);
         } catch (error) {
-          // Если обновление не удалось, оставляем форму открытой
           setEditedTitle(title);
         } finally {
           setIsLoading(false);
@@ -68,12 +68,12 @@ export const TodoUser: React.FC<Props> = ({
     handleCompletedStatus(id);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
       handleBlur();
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
       setEditedTitle(title);
       setIsEditing(false);
     }
@@ -92,7 +92,7 @@ export const TodoUser: React.FC<Props> = ({
       </label>
 
       {isEditing ? (
-        <form onSubmit={e => e.preventDefault()}>
+        <form onSubmit={event => event.preventDefault()}>
           <input
             data-cy="TodoTitleField"
             type="text"
