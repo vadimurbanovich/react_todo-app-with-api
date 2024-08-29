@@ -22,7 +22,7 @@ export const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const allCompleted = todos.every(t => t.completed);
+    const allCompleted = todos.every(todo => todo.completed);
 
     setIsActive(allCompleted);
   }, [todos]);
@@ -111,7 +111,7 @@ export const App: React.FC = () => {
       .catch(() => {
         setErrorMessage(ErrorMessages.UNABLE_TO_DELETE);
         setTimeout(() => setErrorMessage(null), 3000);
-        throw new Error(ErrorMessages.UNABLE_TO_DELETE); // Важно: выбрасываем ошибку
+        throw new Error(ErrorMessages.UNABLE_TO_DELETE);
       })
       .finally(() => {
         setProcessedId([]);
