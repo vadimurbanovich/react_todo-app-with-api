@@ -1,5 +1,3 @@
-/* eslint-disable jsx-a11y/label-has-associated-control */
-/* eslint-disable jsx-a11y/control-has-associated-label */
 import React, { useEffect, useRef, useState } from 'react';
 import { Todo } from '../../types/Todo';
 import cn from 'classnames';
@@ -20,46 +18,48 @@ export const TodoUser: React.FC<Props> = ({
   processedId,
 }) => {
   const { id, completed, title } = todo;
-  const [isEditingTodo, setIsEditingTodo] = useState<Todo | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
+  const [isLoading, setIsLoading] = useState(false);
 
   const processedTodos = processedId?.includes(id) || id === 0;
 
   const todoField = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (todoField.current && isEditingTodo) {
+    if (todoField.current && isEditing) {
       todoField.current.focus();
     }
-  }, [isEditingTodo]);
+  }, [isEditing]);
 
   const handleBlur = async () => {
-    if (isEditingTodo) {
+    if (isEditing) {
       const titleTrim = editedTitle.trim();
 
       if (titleTrim === '') {
         try {
           setIsLoading(true);
           await onDelete(id);
-          setIsEditingTodo(null);
+          setIsEditing(false);
         } catch (error) {
-          throw error;
+          // Если удаление не удалось, оставляем форму открытой
+          setEditedTitle(title);
         } finally {
           setIsLoading(false);
         }
       } else if (titleTrim !== title) {
         try {
           setIsLoading(true);
-          await handleUpdateTodo({ ...isEditingTodo, title: titleTrim });
-          setIsEditingTodo(null);
+          await handleUpdateTodo({ ...todo, title: titleTrim });
+          setIsEditing(false);
         } catch (error) {
-          throw error;
+          // Если обновление не удалось, оставляем форму открытой
+          setEditedTitle(title);
         } finally {
           setIsLoading(false);
         }
       } else {
-        setIsEditingTodo(null);
+        setIsEditing(false);
       }
     }
   };
@@ -75,7 +75,7 @@ export const TodoUser: React.FC<Props> = ({
     } else if (e.key === 'Escape') {
       e.preventDefault();
       setEditedTitle(title);
-      setIsEditingTodo(null);
+      setIsEditing(false);
     }
   };
 
@@ -91,7 +91,7 @@ export const TodoUser: React.FC<Props> = ({
         />
       </label>
 
-      {isEditingTodo?.id === id ? (
+      {isEditing ? (
         <form onSubmit={e => e.preventDefault()}>
           <input
             data-cy="TodoTitleField"
@@ -111,7 +111,7 @@ export const TodoUser: React.FC<Props> = ({
             data-cy="TodoTitle"
             className="todo__title"
             onDoubleClick={() => {
-              setIsEditingTodo(todo);
+              setIsEditing(true);
               setEditedTitle(title);
             }}
           >

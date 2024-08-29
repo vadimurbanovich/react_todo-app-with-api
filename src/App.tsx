@@ -1,5 +1,3 @@
-/* eslint-disable jsx-a11y/label-has-associated-control */
-/* eslint-disable jsx-a11y/control-has-associated-label */
 import React, { useEffect, useMemo, useState } from 'react';
 import { UserWarning } from './UserWarning';
 import * as todosService from './api/todos';
@@ -19,6 +17,7 @@ export const App: React.FC = () => {
   const [processedId, setProcessedId] = useState<number[]>([]);
   const [isActive, setIsActive] = useState(true);
   const [isSubmittingEnter, setIsSubmittingEnter] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const allCompleted = todos.every(t => t.completed);
@@ -32,13 +31,15 @@ export const App: React.FC = () => {
     }
 
     setErrorMessage(null);
+    setIsLoading(true);
     todosService
       .getTodos()
       .then(setTodos)
       .catch(() => {
         setErrorMessage(ErrorMessages.UNABLE_TO_LOAD);
         setTimeout(() => setErrorMessage(null), 3000);
-      });
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   const handleUpdateTodo = async (updateTodo: Todo): Promise<void> => {
@@ -67,7 +68,6 @@ export const App: React.FC = () => {
     const todoToUpdate = todos.find(todo => todo.id === id);
 
     setProcessedId(ids => [...ids, id]);
-
     if (todoToUpdate) {
       const updatedTodo = {
         ...todoToUpdate,
@@ -98,7 +98,7 @@ export const App: React.FC = () => {
     setTodos(prevTodos => [...prevTodos, todo]);
   };
 
-  function deleteTodo(id: number) {
+  const deleteTodo = (id: number): Promise<void> => {
     setProcessedId(ids => [...ids, id]);
 
     return todosService
@@ -109,12 +109,39 @@ export const App: React.FC = () => {
       .catch(() => {
         setErrorMessage(ErrorMessages.UNABLE_TO_DELETE);
         setTimeout(() => setErrorMessage(null), 3000);
+        throw new Error(ErrorMessages.UNABLE_TO_DELETE); // Важно: выбрасываем ошибку
       })
       .finally(() => {
         setProcessedId([]);
         setIsSubmittingEnter(!isSubmittingEnter);
       });
-  }
+  };
+
+  const handleToggleAll = () => {
+    const hasIncomplete = todos.some(todo => !todo.completed);
+    const todosToUpdate = hasIncomplete
+      ? todos.filter(todo => !todo.completed)
+      : todos;
+
+    Promise.all(
+      todosToUpdate.map(todo =>
+        todosService.patchTodo(todo.id, { completed: hasIncomplete }),
+      ),
+    )
+      .then(updatedTodos => {
+        setTodos(prevTodos =>
+          prevTodos.map(todo => {
+            const updatedTodo = updatedTodos.find(t => t.id === todo.id);
+
+            return updatedTodo || todo;
+          }),
+        );
+      })
+      .catch(() => {
+        setErrorMessage('Unable to update todos');
+        setTimeout(() => setErrorMessage(null), 3000);
+      });
+  };
 
   const filteredTodos = useMemo(() => {
     switch (currentFilter) {
@@ -141,10 +168,11 @@ export const App: React.FC = () => {
           onAdd={addTodo}
           setErrorMessage={setErrorMessage}
           setTempTodo={setTempTodo}
-          handleCompletedStatus={handleCompletedStatus}
+          handleToggleAll={handleToggleAll}
           isActive={isActive}
           isSubmittingEnter={isSubmittingEnter}
           setIsSubmittingEnter={setIsSubmittingEnter}
+          isLoading={isLoading}
         />
 
         <TodoList

@@ -8,6 +8,11 @@ type Props = {
   onAdd: (todo: Todo) => void;
   setErrorMessage: React.Dispatch<React.SetStateAction<string | null>>;
   setTempTodo: React.Dispatch<React.SetStateAction<Todo | null>>;
+  handleToggleAll: () => void;
+  isActive: boolean;
+  isSubmittingEnter: boolean;
+  setIsSubmittingEnter: React.Dispatch<React.SetStateAction<boolean>>;
+  isLoading: boolean;
 };
 
 export const TodoHeader: React.FC<Props> = ({
@@ -15,15 +20,24 @@ export const TodoHeader: React.FC<Props> = ({
   onAdd,
   setErrorMessage,
   setTempTodo,
+  handleToggleAll,
+  isActive,
+  isSubmittingEnter,
+  setIsSubmittingEnter,
+  isLoading,
 }) => {
   const field = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    field.current?.focus();
+  }, [todos, isSubmitting]);
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (title.replace(/\s+/g, '').length === 0) {
+    if (title.trim().length === 0) {
       setErrorMessage(ErrorMessages.EMPTY_TITLE);
       setTimeout(() => setErrorMessage(null), 3000);
     } else {
@@ -48,21 +62,21 @@ export const TodoHeader: React.FC<Props> = ({
         .finally(() => {
           setIsSubmitting(false);
           setTempTodo(null);
+          setIsSubmittingEnter(!isSubmittingEnter);
         });
     }
   };
 
-  useEffect(() => {
-    field.current?.focus();
-  }, [todos, isSubmitting]);
-
   return (
     <header className="todoapp__header">
-      <button
-        type="button"
-        className="todoapp__toggle-all active"
-        data-cy="ToggleAllButton"
-      />
+      {!isLoading && todos.length > 0 && (
+        <button
+          type="button"
+          className={`todoapp__toggle-all ${isActive ? 'active' : ''}`}
+          data-cy="ToggleAllButton"
+          onClick={handleToggleAll}
+        />
+      )}
       <form onSubmit={handleSubmit}>
         <input
           ref={field}

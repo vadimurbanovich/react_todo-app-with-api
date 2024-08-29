@@ -4,7 +4,7 @@ import { TodoUser } from '../TodoUser/TodoUser';
 
 type Props = {
   todos: Todo[];
-  onDelete: (id: number) => void;
+  onDelete: (id: number) => Promise<void>;
   tempTodo: Todo | null;
   handleCompletedStatus: (id: number) => void;
   handleUpdateTodo: (todo: Todo) => Promise<void>;
